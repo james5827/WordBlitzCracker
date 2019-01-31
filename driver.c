@@ -11,19 +11,21 @@
 #define BUF_SIZE 128
 typedef char byte;
 
-void populate_grids();
-void duplicate_active_grid(bool target[GRID_SIZE][GRID_SIZE], bool source[GRID_SIZE][GRID_SIZE]);
+void populate_grid();
+void recursive_search(byte row, byte col, byte letter);
+char * s_gets(char *st, int n, FILE * fp);
 
-char letter_grid[GRID_SIZE][GRID_SIZE];
-bool active_grid[GRID_SIZE][GRID_SIZE];
+struct node {
+	char letter;
+	bool active;
+};
+
+struct node grid[GRID_SIZE][GRID_SIZE];
 
 char word[WORD_SIZE];
 
-void recursive_search(byte row, byte col, byte letter);
 
-StrMap *sm; char * s_gets(char *st, int n, FILE * fp);
-
-unsigned int searches = 0;
+StrMap *sm; 
 
 int main(void)
 {
@@ -31,6 +33,8 @@ int main(void)
 	char buf[BUF_SIZE];
 
 	sm = sm_new(DICTIONARY_LENGTH);
+	if (sm == NULL)
+		return 2;
 
 	dictionary = fopen("dictionary/words.txt", "r");
 	while (s_gets(buf, BUF_SIZE, dictionary)) {
@@ -39,11 +43,7 @@ int main(void)
 	fclose(dictionary);
 
 	memset(word, '\0', WORD_SIZE);
-	populate_grids();
-	
-	if (sm == NULL)
-		return 2;
-
+	populate_grid();
 
 	for (int i = 0; i < GRID_SIZE; ++i) 
 		for (int j = 0; j < GRID_SIZE; ++j)
@@ -51,70 +51,64 @@ int main(void)
 	
 	sm_delete(sm);
 
-	printf("Updated Searches %d\n", searches);
-
 	return 1;
 }
 
 void recursive_search(byte row, byte col, byte letter)
 {
-	active_grid[row][col] = false;
-	word[letter++] = letter_grid[row][col];
+	grid[row][col].active = false;
+	word[letter++] = grid[row][col].letter;
 
-	searches++;
-
-	printf("%s\n", word);
 	if (sm_exists(sm, word) == true) {
-		//printf("%s\n", word);
+		printf("%s\n", word);
 	}
 
 	// top
-	if (row - 1 >= 0 && active_grid[row - 1][col]) {
+	if (row - 1 >= 0 && grid[row - 1][col].active) {
 		recursive_search(row - 1, col, letter);
 	}
 
 	// top right
-	if (row - 1 >= 0 && col + 1 < GRID_SIZE && active_grid[row - 1][col + 1]) {
+	if (row - 1 >= 0 && col + 1 < GRID_SIZE && grid[row - 1][col + 1].active) {
 		recursive_search(row - 1, col + 1, letter);
 	}
 
 	// right
-	if (col + 1 < GRID_SIZE && active_grid[row][col + 1]) {
+	if (col + 1 < GRID_SIZE && grid[row][col + 1].active) {
 		recursive_search(row, col + 1, letter);
 	}
 
 	// bottom right
-	if (row + 1 < GRID_SIZE && col + 1 < GRID_SIZE && active_grid[row + 1][col + 1]) {
+	if (row + 1 < GRID_SIZE && col + 1 < GRID_SIZE && grid[row + 1][col + 1].active) {
 		recursive_search(row + 1, col + 1, letter);
 	}
 
 	// bottom
-	if (row + 1 < GRID_SIZE && active_grid[row + 1][col]) {
+	if (row + 1 < GRID_SIZE && grid[row + 1][col].active) {
 		recursive_search(row + 1, col, letter);
 
 	}
 
 	// bottom left
-	if (row + 1 < GRID_SIZE && col - 1 >= 0 && active_grid[row + 1][col - 1]) {
+	if (row + 1 < GRID_SIZE && col - 1 >= 0 && grid[row + 1][col - 1].active) {
 		recursive_search(row + 1, col - 1, letter);
 	}
 
 	//left
-	if (col - 1 >= 0 && active_grid[row][col - 1]) {
+	if (col - 1 >= 0 && grid[row][col - 1].active) {
 		recursive_search(row, col - 1, letter);
 	}
 
 	//top left
-	if (row - 1 >= 0 && col - 1 >= 0 && active_grid[row - 1][col - 1]) {
+	if (row - 1 >= 0 && col - 1 >= 0 && grid[row - 1][col - 1].active) {
 		recursive_search(row - 1, col - 1, letter);
 	}
 
-	active_grid[row][col] = true;
+	grid[row][col].active = true;
 	word[letter] = '\0';
 }
 
-//GRID FUNCTIONS
-void populate_grids()
+void populate_grid()
 {
 	char c;
 	for (int i = 0; i < GRID_SIZE; ++i) {
@@ -126,8 +120,8 @@ void populate_grids()
 					continue;
 
 			if (isalpha(c)) {
-				letter_grid[i][j] = tolower(c);
-				active_grid[i][j] = true;
+				grid[i][j].letter = tolower(c);
+				grid[i][j].active = true;
 			} else {
 				puts("Invalid Input");
 				--j;
@@ -136,13 +130,6 @@ void populate_grids()
 		}
 		putchar('\n');
 	}
-}
-
-void duplicate_active_grid(bool target[GRID_SIZE][GRID_SIZE], bool source[GRID_SIZE][GRID_SIZE])
-{
-	for (int i = 0; i < GRID_SIZE; ++i)
-		for (int j = 0; j < GRID_SIZE; ++j)
-			target[i][j] = source[i][j];
 }
 
 char * s_gets(char *st, int n, FILE * fp)
