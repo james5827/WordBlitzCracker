@@ -16,6 +16,8 @@ void populate_grid();
 void read_dictionary();
 void recursive_search(byte row, byte col, byte letter);
 char * s_gets(char *st, int n, FILE * fp);
+int str_sort_cb(const void *str1, const void *str2);
+void remove_duplicates();
 
 struct node {
 	char letter;
@@ -48,13 +50,32 @@ int main(void)
 	for (int i = 0; i < GRID_SIZE; ++i) 
 		for (int j = 0; j < GRID_SIZE; ++j)
 			recursive_search(i, j, 0);
+
+	qsort(&found_words[0], fw_index, sizeof(char *), str_sort_cb);
+
 	end = clock();
 	cpu_time = ((double)(end - start)) / CLOCKS_PER_SEC;
-	
-	printf("Hash Count: %d Searches: %d, Words Found: %d, Search Time: %lf\n", sm_get_count(sm) ,searches, words_found, cpu_time);
 
+	while (fw_index--) {
+		printf("%d %s\n", fw_index, found_words[fw_index]);
+		free(found_words[fw_index]);
+	}
+
+	printf("Hash Count: %d Searches: %d, Words Found: %d, Search Time: %lf\n", sm_get_count(sm) ,searches, words_found, cpu_time);
 	sm_delete(sm);
 	return 1;
+}
+
+int str_sort_cb(const void *str1, const void *str2)
+{
+	unsigned int len1 = strlen(*(char **) str1);
+	unsigned int len2 = strlen(*(char **) str2);
+	if (len1 > len2)
+		return -1;
+	else if (len1 < len2)
+		return 1;
+	else 
+		return 0;
 }
 
 void recursive_search(byte row, byte col, byte letter)
@@ -63,9 +84,22 @@ void recursive_search(byte row, byte col, byte letter)
 	word[letter++] = grid[row][col].letter;
 
 	++searches;
-	if (sm_exists(sm, word) == true) {
+	if (sm_exists(sm, word)) {
 		++words_found;
-		printf("%s %d\n", word, letter);
+
+		//replace this monstrosity
+		bool unique = true;
+		for (int i = 0; i < fw_index; ++i) {
+			if (strcmp(word, found_words[i]) == 0) {
+				unique = false;
+				break;
+			}
+		}
+
+		if (unique) {
+			found_words[fw_index] = malloc(letter + 1);
+			strcpy(found_words[fw_index++], word);
+		}
 	}
 
 	if (row - 1 >= 0) {
