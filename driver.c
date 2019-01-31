@@ -25,6 +25,9 @@ struct node grid[GRID_SIZE][GRID_SIZE];
 char word[WORD_SIZE];
 StrMap *sm; 
 
+unsigned int searches = 0;
+unsigned int words_found = 0;
+
 int main(void)
 {
 	sm = sm_new(DICTIONARY_LENGTH);
@@ -32,11 +35,20 @@ int main(void)
 	populate_grid();
 
 	memset(word, '\0', WORD_SIZE);
+
+	clock_t start, end;
+	double cpu_time;
+
+	start = clock();
 	for (int i = 0; i < GRID_SIZE; ++i) 
 		for (int j = 0; j < GRID_SIZE; ++j)
 			recursive_search(i, j, 0);
+	end = clock();
+	cpu_time = ((double)(end - start)) / CLOCKS_PER_SEC;
 	
 	sm_delete(sm);
+
+	printf("Searches: %d, Words Found: %d, Search Time: %lf\n", searches, words_found, cpu_time);
 
 	return 1;
 }
@@ -46,8 +58,11 @@ void recursive_search(byte row, byte col, byte letter)
 	grid[row][col].active = false;
 	word[letter++] = grid[row][col].letter;
 
-	if (sm_exists(sm, word) == true)
+	++searches;
+	if (sm_exists(sm, word) == true) {
+		++words_found;
 		printf("%s\n", word);
+	}
 
 	// top
 	if (row - 1 >= 0 && grid[row - 1][col].active)
