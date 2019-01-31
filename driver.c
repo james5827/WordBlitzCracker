@@ -64,37 +64,33 @@ void recursive_search(byte row, byte col, byte letter)
 		printf("%s\n", word);
 	}
 
-	// top
-	if (row - 1 >= 0 && grid[row - 1][col].active)
-		recursive_search(row - 1, col, letter);
+	if (row - 1 >= 0) {
+		if (col - 1 >= 0 && grid[row - 1][col - 1].active)
+			recursive_search(row - 1, col - 1, letter);
 
-	// top right
-	if (row - 1 >= 0 && col + 1 < GRID_SIZE && grid[row - 1][col + 1].active)
-		recursive_search(row - 1, col + 1, letter);
+		if (grid[row - 1][col].active)
+			recursive_search(row - 1, col, letter);
 
-	// right
+		if (col + 1 < GRID_SIZE && grid[row - 1][col + 1].active)
+			recursive_search(row - 1, col + 1, letter);
+	}
+
 	if (col + 1 < GRID_SIZE && grid[row][col + 1].active)
 		recursive_search(row, col + 1, letter);
 
-	// bottom right
-	if (row + 1 < GRID_SIZE && col + 1 < GRID_SIZE && grid[row + 1][col + 1].active)
-		recursive_search(row + 1, col + 1, letter);
-
-	// bottom
-	if (row + 1 < GRID_SIZE && grid[row + 1][col].active)
-		recursive_search(row + 1, col, letter);
-
-	// bottom left
-	if (row + 1 < GRID_SIZE && col - 1 >= 0 && grid[row + 1][col - 1].active)
-		recursive_search(row + 1, col - 1, letter);
-
-	//left
 	if (col - 1 >= 0 && grid[row][col - 1].active)
 		recursive_search(row, col - 1, letter);
 
-	//top left
-	if (row - 1 >= 0 && col - 1 >= 0 && grid[row - 1][col - 1].active)
-		recursive_search(row - 1, col - 1, letter);
+	if (row + 1 < GRID_SIZE) {
+		if (col + 1 < GRID_SIZE && grid[row + 1][col + 1].active)
+			recursive_search(row + 1, col + 1, letter);
+
+		if (grid[row + 1][col].active)
+			recursive_search(row + 1, col, letter);
+
+		if (col - 1 >= 0 && grid[row + 1][col - 1].active)
+			recursive_search(row + 1, col - 1, letter);
+	}
 
 	grid[row][col].active = true;
 	word[letter] = '\0';
