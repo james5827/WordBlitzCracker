@@ -7,6 +7,8 @@
 #include "strmap.h"
 #define GRID_SIZE 4
 #define WORD_SIZE GRID_SIZE * GRID_SIZE + 1
+#define DICTIONARY_LENGTH 466500
+#define BUF_SIZE 128
 typedef char byte;
 
 void populate_grids();
@@ -24,21 +26,23 @@ char * s_gets(char *st, int n, FILE * fp);
 
 int main(void)
 {
-	memset(word, '\0', WORD_SIZE);
-	populate_grids();
-	
-	sm = sm_new(466500);
-	if (sm == NULL)
-		return 2;
-
 	FILE *dictionary;
-	dictionary = fopen("dictionary/words.txt", "r");
-	char buf[128];
+	char buf[BUF_SIZE];
 
-	while (s_gets(buf, 128, dictionary)) {
+	sm = sm_new(DICTIONARY_LENGTH);
+
+	dictionary = fopen("dictionary/words.txt", "r");
+	while (s_gets(buf, BUF_SIZE, dictionary)) {
 		sm_put(sm, buf, buf);
 	}
 	fclose(dictionary);
+
+	memset(word, '\0', WORD_SIZE);
+	populate_grids();
+	
+	if (sm == NULL)
+		return 2;
+
 
 	for (int i = 0; i < GRID_SIZE; ++i) 
 		for (int j = 0; j < GRID_SIZE; ++j)
