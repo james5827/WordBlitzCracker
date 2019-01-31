@@ -145,8 +145,7 @@ void read_dictionary()
 	fclose(dictionary);
 }
 
-void populate_grid()
-{
+void populate_grid() {
 	char c;
 	for (int i = 0; i < GRID_SIZE; ++i) {
 		for (int j = 0; j < GRID_SIZE; ++j) {
