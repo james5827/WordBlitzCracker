@@ -19,10 +19,11 @@ bool active_grid[GRID_SIZE][GRID_SIZE];
 
 char word[WORD_SIZE];
 
-void recursive_search(bool grid_cpy[GRID_SIZE][GRID_SIZE], byte row, byte col, byte letter);
+void recursive_search(byte row, byte col, byte letter);
 
-StrMap *sm;
-char * s_gets(char *st, int n, FILE * fp);
+StrMap *sm; char * s_gets(char *st, int n, FILE * fp);
+
+unsigned int searches = 0;
 
 int main(void)
 {
@@ -46,67 +47,69 @@ int main(void)
 
 	for (int i = 0; i < GRID_SIZE; ++i) 
 		for (int j = 0; j < GRID_SIZE; ++j)
-			recursive_search(active_grid, i, j, 0);
+			recursive_search(i, j, 0);
 	
 	sm_delete(sm);
+
+	printf("Updated Searches %d\n", searches);
 
 	return 1;
 }
 
-void recursive_search(bool act_master[GRID_SIZE][GRID_SIZE], byte row, byte col, byte letter)
+void recursive_search(byte row, byte col, byte letter)
 {
-	act_master[row][col] = false;
+	active_grid[row][col] = false;
 	word[letter++] = letter_grid[row][col];
 
+	searches++;
+
+	printf("%s\n", word);
 	if (sm_exists(sm, word) == true) {
-		printf("%s\n", word);
+		//printf("%s\n", word);
 	}
 
-	bool act_cpy[GRID_SIZE][GRID_SIZE];
-	duplicate_active_grid(act_cpy, act_master);
-
 	// top
-	if (row - 1 >= 0 && act_master[row - 1][col]) {
-		recursive_search(act_cpy, row - 1, col, letter);
+	if (row - 1 >= 0 && active_grid[row - 1][col]) {
+		recursive_search(row - 1, col, letter);
 	}
 
 	// top right
-	if (row - 1 >= 0 && col + 1 < GRID_SIZE && act_master[row - 1][col + 1]) {
-		recursive_search(act_cpy, row - 1, col + 1, letter);
+	if (row - 1 >= 0 && col + 1 < GRID_SIZE && active_grid[row - 1][col + 1]) {
+		recursive_search(row - 1, col + 1, letter);
 	}
 
 	// right
-	if (col + 1 < GRID_SIZE && act_master[row][col + 1]) {
-		recursive_search(act_cpy, row, col + 1, letter);
+	if (col + 1 < GRID_SIZE && active_grid[row][col + 1]) {
+		recursive_search(row, col + 1, letter);
 	}
 
 	// bottom right
-	if (row + 1 < GRID_SIZE && col + 1 < GRID_SIZE && act_master[row + 1][col + 1]) {
-		recursive_search(act_cpy, row + 1, col + 1, letter);
+	if (row + 1 < GRID_SIZE && col + 1 < GRID_SIZE && active_grid[row + 1][col + 1]) {
+		recursive_search(row + 1, col + 1, letter);
 	}
 
 	// bottom
-	if (row + 1 < GRID_SIZE && act_master[row + 1][col]) {
-		recursive_search(act_cpy, row + 1, col, letter);
+	if (row + 1 < GRID_SIZE && active_grid[row + 1][col]) {
+		recursive_search(row + 1, col, letter);
 
 	}
 
 	// bottom left
-	if (row + 1 < GRID_SIZE && col - 1 >= 0 && act_master[row + 1][col - 1]) {
-		recursive_search(act_cpy, row + 1, col - 1, letter);
+	if (row + 1 < GRID_SIZE && col - 1 >= 0 && active_grid[row + 1][col - 1]) {
+		recursive_search(row + 1, col - 1, letter);
 	}
 
 	//left
-	if (col - 1 >= 0 && act_master[row][col - 1]) {
-		recursive_search(act_cpy, row, col - 1, letter);
+	if (col - 1 >= 0 && active_grid[row][col - 1]) {
+		recursive_search(row, col - 1, letter);
 	}
 
 	//top left
-	if (row - 1 >= 0 && col - 1 >= 0 && act_master[row - 1][col - 1]) {
-		recursive_search(act_cpy, row - 1, col - 1, letter);
+	if (row - 1 >= 0 && col - 1 >= 0 && active_grid[row - 1][col - 1]) {
+		recursive_search(row - 1, col - 1, letter);
 	}
 
-	act_master[row][col] = true;
+	active_grid[row][col] = true;
 	word[letter] = '\0';
 }
 
