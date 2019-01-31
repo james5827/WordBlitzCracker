@@ -8,6 +8,7 @@
 #define GRID_SIZE 4
 #define WORD_SIZE GRID_SIZE * GRID_SIZE + 1
 #define DICTIONARY_LENGTH 466500
+#define FOUND_SIZE 2000
 #define BUF_SIZE 128
 typedef char byte;
 
@@ -22,6 +23,10 @@ struct node {
 };
 
 struct node grid[GRID_SIZE][GRID_SIZE];
+
+unsigned int fw_index = 0;
+char *found_words[FOUND_SIZE];
+
 char word[WORD_SIZE];
 StrMap *sm; 
 
@@ -46,10 +51,9 @@ int main(void)
 	end = clock();
 	cpu_time = ((double)(end - start)) / CLOCKS_PER_SEC;
 	
+	printf("Hash Count: %d Searches: %d, Words Found: %d, Search Time: %lf\n", sm_get_count(sm) ,searches, words_found, cpu_time);
+
 	sm_delete(sm);
-
-	printf("Searches: %d, Words Found: %d, Search Time: %lf\n", searches, words_found, cpu_time);
-
 	return 1;
 }
 
@@ -61,7 +65,7 @@ void recursive_search(byte row, byte col, byte letter)
 	++searches;
 	if (sm_exists(sm, word) == true) {
 		++words_found;
-		printf("%s\n", word);
+		printf("%s %d\n", word, letter);
 	}
 
 	if (row - 1 >= 0) {
