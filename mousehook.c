@@ -104,7 +104,7 @@ void move_mouse(Display *dpy, int x, int y)
 	Window root = XRootWindow(dpy, 0);
     	XWarpPointer(dpy, None, root, 0, 0, 0, 0, x, y);
 	XFlush(dpy);
-	usleep(400000);
+	usleep(500000);
 }
 
 void click(Display *dpy) 
@@ -130,7 +130,7 @@ void click(Display *dpy)
 	    fprintf(stderr, "Error to send the event!\n");
 
 	  XFlush(dpy);
-	  sleep(1);
+	  usleep(500000);
 }
 
 void release(Display *dpy)
@@ -155,5 +155,5 @@ void release(Display *dpy)
 	    fprintf (stderr, "Error to send the event!\n");
 
 	  XFlush (dpy);
-	  sleep(1);
+	  usleep(500000);
 }
