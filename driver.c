@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include "strmap.h"
+#include "mousehook.h"
 #define GRID_SIZE 4
 #define WORD_SIZE GRID_SIZE * GRID_SIZE + 1
 #define DICTIONARY_LENGTH 466500
@@ -68,9 +69,7 @@ int main(void)
 	while (fw_index--) {
 		printf("%d %s\t\t| ", fw_index, found_words[fw_index].letters);
 
-		int i = 0;
-		while (found_words[fw_index].path[i] != 0)
-			printf("%d ", found_words[fw_index].path[i++]);
+		process_path(found_words[fw_index].path);
 		printf("\n");
 
 		free(found_words[fw_index].letters);
@@ -92,9 +91,9 @@ int str_sort_cb(const void *str1, const void *str2)
 	unsigned int len2 = strlen(f2.letters);
 
 	if (len1 > len2)
-		return -1;
-	else if (len1 < len2)
 		return 1;
+	else if (len1 < len2)
+		return -1;
 	else 
 		return 0;
 }
