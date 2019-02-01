@@ -24,12 +24,22 @@ struct node {
 	bool active;
 };
 
+struct test_word {
+	char letters[WORD_SIZE];
+	int path[GRID_SIZE * GRID_SIZE];
+};
+
+struct found_word {
+	char *letters;
+	int *path;
+};
+
 struct node grid[GRID_SIZE][GRID_SIZE];
+struct test_word word;
+struct found_word found_words[FOUND_SIZE];
 
 unsigned int fw_index = 0;
-char *found_words[FOUND_SIZE];
 
-char word[WORD_SIZE];
 StrMap *sm; 
 
 unsigned int searches = 0;
@@ -41,35 +51,46 @@ int main(void)
 	read_dictionary();
 	populate_grid();
 
-	memset(word, '\0', WORD_SIZE);
+	memset(word.letters, '\0', WORD_SIZE);
 
 	clock_t start, end;
 	double cpu_time;
-
 	start = clock();
 	for (int i = 0; i < GRID_SIZE; ++i) 
 		for (int j = 0; j < GRID_SIZE; ++j)
 			recursive_search(i, j, 0);
 
-	qsort(&found_words[0], fw_index, sizeof(char *), str_sort_cb);
+	qsort(&found_words[0], fw_index, sizeof(struct found_word), str_sort_cb);
 
 	end = clock();
 	cpu_time = ((double)(end - start)) / CLOCKS_PER_SEC;
 
 	while (fw_index--) {
-		printf("%d %s\n", fw_index, found_words[fw_index]);
-		free(found_words[fw_index]);
+		printf("%d %s\t\t| ", fw_index, found_words[fw_index].letters);
+
+		int i = 0;
+		while (found_words[fw_index].path[i] != 0)
+			printf("%d ", found_words[fw_index].path[i++]);
+		printf("\n");
+
+		free(found_words[fw_index].letters);
+		free(found_words[fw_index].path);
 	}
 
-	printf("Hash Count: %d Searches: %d, Words Found: %d, Search Time: %lf\n", sm_get_count(sm) ,searches, words_found, cpu_time);
+	printf("Hash Count: %d Searches: %d, Words Found: %d, Search Time: %lf\n",
+		       	sm_get_count(sm) ,searches, words_found, cpu_time);
 	sm_delete(sm);
 	return 1;
 }
 
 int str_sort_cb(const void *str1, const void *str2)
 {
-	unsigned int len1 = strlen(*(char **) str1);
-	unsigned int len2 = strlen(*(char **) str2);
+	struct found_word f1 = *(struct found_word *) str1;
+	struct found_word f2 = *(struct found_word *) str2;
+
+	unsigned int len1 = strlen(f1.letters);
+	unsigned int len2 = strlen(f2.letters);
+
 	if (len1 > len2)
 		return -1;
 	else if (len1 < len2)
@@ -81,24 +102,31 @@ int str_sort_cb(const void *str1, const void *str2)
 void recursive_search(byte row, byte col, byte letter)
 {
 	grid[row][col].active = false;
-	word[letter++] = grid[row][col].letter;
+	word.path[letter] = (col + 1) + (row * GRID_SIZE);
+	word.letters[letter++] = grid[row][col].letter;
+
 
 	++searches;
-	if (sm_exists(sm, word)) {
+	if (sm_exists(sm, word.letters)) {
 		++words_found;
 
 		//replace this monstrosity
 		bool unique = true;
 		for (int i = 0; i < fw_index; ++i) {
-			if (strcmp(word, found_words[i]) == 0) {
+			if (strcmp(word.letters, found_words[i].letters) == 0) {
 				unique = false;
 				break;
 			}
 		}
 
 		if (unique) {
-			found_words[fw_index] = malloc(letter + 1);
-			strcpy(found_words[fw_index++], word);
+			found_words[fw_index].letters = malloc(letter + 1);
+			found_words[fw_index].path = malloc((letter + 1) * sizeof(int));
+
+			memcpy(found_words[fw_index].path, word.path, sizeof(int) * letter);
+			found_words[fw_index].path[letter] = 0;
+
+			strcpy(found_words[fw_index++].letters, word.letters);
 		}
 	}
 
@@ -131,7 +159,7 @@ void recursive_search(byte row, byte col, byte letter)
 	}
 
 	grid[row][col].active = true;
-	word[letter] = '\0';
+	word.letters[letter] = '\0';
 }
 
 void read_dictionary()
@@ -145,7 +173,8 @@ void read_dictionary()
 	fclose(dictionary);
 }
 
-void populate_grid() {
+void populate_grid() 
+{
 	char c;
 	for (int i = 0; i < GRID_SIZE; ++i) {
 		for (int j = 0; j < GRID_SIZE; ++j) {
