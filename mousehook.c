@@ -104,7 +104,7 @@ void move_mouse(Display *dpy, int x, int y)
 	Window root = XRootWindow(dpy, 0);
     	XWarpPointer(dpy, None, root, 0, 0, 0, 0, x, y);
 	XFlush(dpy);
-	usleep(500000);
+	usleep(400000);
 }
 
 void click(Display *dpy) 
